@@ -9,8 +9,7 @@ comb <- function(x, y) {
 
 saida <- foreach(i=1:length(UF),
                   .packages=c("tidyverse", "data.table", "scales", "purrr",
-                  "readr", "vroom", "INLA", "snow", "nowcaster", "get.intensity",
-                  "slope.estimate.quant_fx"), 
+                  "readr", "vroom", "INLA", "snow", "nowcaster"), 
                  .export = c("get.intensity", "slope.estimate.quant_fx", "limiar"),
                   .combine="comb") %dopar% {
                     

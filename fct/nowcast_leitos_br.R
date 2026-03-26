@@ -75,23 +75,11 @@ dados_f_br<- df %>%
   left_join(dados_noti, by=c("fx_etaria", "epiyear", "epiweek")) %>%
   select(-casos2) %>%
   mutate(
-    "DS_UF_SIGLA"=="BR", 
-    "SG_UF_NOT" = 0
+    "DS_UF_SIGLA"="BR"
   )
 
 
-###Dados de intensidade
-intensidade_br <- map_dfr(
-  c(1, 2),
-  ~ get.intensity(
-    trajectories = now$trajectories,
-    region_code = "BR",
-    fx_etarian = .x
-  )
-)
-
-
- grid <- expand_grid(
+grid <- expand_grid(
       window = c(3, 6),
       fx_etarian = c(1, 2)
     )
@@ -111,7 +99,7 @@ intensidade_br <- map_dfr(
     
     tendencia_br<-tendencia_br %>%
       mutate(
-        "DS_UF_SIGLA"=="BR"
+        "DS_UF_SIGLA"="BR"
       )
       
     

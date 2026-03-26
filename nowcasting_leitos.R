@@ -23,13 +23,11 @@ registerDoParallel(cl)
 dados<-read.csv("dado/clean_data_srag_sragnofever_epiweek.csv.gz")
 limiar<-read.csv2("dado/limiares_UF_srag_leitos.csv")
 uf_auxi<-read.csv("dado/tabela_auxiliar_uf.csv")
-head(uf_auxi)
 
 uf_auxi <- uf_auxi %>%
   add_row(
     DS_UF_SIGLA = "BR",
-    SG_UF_NOT = 0,
-    CO_MUN_NOT = 0
+    SG_UF_NOT = 0
   )
 
 ###lendo funções
@@ -48,6 +46,9 @@ window<-2.25*def_dmax
 
 ###Dados UF
 
+uf_auxi2<- uf_auxi %>%
+  select(-CO_MUN_NOT)
+
 df<- dados %>%
   filter(DT_SIN_PRI_epiyear>=ano)%>%
   mutate(fx_etaria= case_when(
@@ -59,7 +60,7 @@ df<- dados %>%
   mutate(DT_SIN_PRI=ymd(DT_SIN_PRI),
          DT_DIGITA=ymd(DT_DIGITA)) %>%
   filter(SG_UF_NOT<90, !is.na(SG_UF_NOT))%>%
-  left_join(uf_auxi, by="SG_UF_NOT")
+  left_join(uf_auxi2, by=c("SG_UF_NOT"))
   
 
 rm(dados)
@@ -88,7 +89,9 @@ UF <- unique(df$DS_UF_SIGLA)
 UF <- sort(UF)
 
 
-now_uf<-run_nowcasting_leitos(df=df, threshold = threshold, UF= c("SP", "RS"))
+now_uf<-run_nowcasting_leitos(df=df, threshold = threshold, UF= UF)
+
+source("fct/nowcast_leitos_br.R")
 
 df_inten <- now_uf$intensidade_srag %>%
   mutate(fx_etaria=case_when(
@@ -97,17 +100,19 @@ df_inten <- now_uf$intensidade_srag %>%
   ))
 
 df_tend <- now_uf$tendencia_srag %>%
+  bind_rows(tendencia_br)%>%
   mutate(fx_etaria=case_when(
     fx_etaria.num==1~"0-12",
     fx_etaria.num==2~ "> 12"
   )) %>%
-  bind_rows(tendencia_br)%>%
   pivot_wider(names_from = window, values_from = tendencia,  
               names_glue = "{.value}_{window}_semanas") %>%
   left_join(uf_auxi, by="DS_UF_SIGLA") %>%
-  select(-CO_MUN_NOT,-fx_etaria.num)
+  select(-fx_etaria.num, -CO_MUN_NOT)
 
 df_now<-now_uf$for_srag %>%
+  bind_rows(dados_f_br)%>%
+          bind_rows(tendencia_br)%>%
         left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria")) 
 
 
@@ -145,7 +150,7 @@ threshold_cap <- df_cap %>%
                   TRUE ~ as.numeric(ceiling(2.25*dmax)))
   )
 
-now_cap<-run_nowcasting_leitos(df=df_cap, threshold = threshold_cap, UF= c("SP", "RS"))
+now_cap<-run_nowcasting_leitos(df=df_cap, threshold = threshold_cap, UF= UF)
 
 dfc_inten <- now_cap$intensidade_srag %>%
   mutate(fx_etaria=case_when(
@@ -164,8 +169,8 @@ dfc_tend <- now_cap$tendencia_srag %>%
   left_join(uf_auxi, by="DS_UF_SIGLA")
 
 dfc_now<-now_cap$for_srag %>%
-  left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria"))
-
+  left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria")) %>%
+  left_join(uf_auxi, by=c("DS_UF_SIGLA", "SG_UF_NOT"))
 
 write.csv2(dfc_now, "output/capitais_serie_estimativas_tendencia_sem_filtro_febre")
 wirte.csv2(dfc_tend, "output/capitais_intensidade_sem_filtro_febre")
