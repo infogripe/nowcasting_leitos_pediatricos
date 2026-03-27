@@ -43,11 +43,12 @@ today.week.ori<-epiweek(Sys.Date())
 lyear<-epiyear(Sys.Date())
 def_dmax<-15
 window<-2.25*def_dmax
-
+data_corte<-Sys.Date()-2 ##rever 
 ###Dados UF
 
 uf_auxi2<- uf_auxi %>%
   select(-CO_MUN_NOT)
+
 
 df<- dados %>%
   filter(DT_SIN_PRI_epiyear>=ano)%>%
@@ -59,8 +60,9 @@ df<- dados %>%
          SinPri2Digita_DelayWeeks,fx_etaria,idade_em_anos) %>%
   mutate(DT_SIN_PRI=ymd(DT_SIN_PRI),
          DT_DIGITA=ymd(DT_DIGITA)) %>%
+  filter(DT_DIGITA<=data_corte) %>%
   filter(SG_UF_NOT<90, !is.na(SG_UF_NOT))%>%
-  left_join(uf_auxi2, by=c("SG_UF_NOT"))
+  left_join(uf_auxi2, by=c("SG_UF_NOT")) 
   
 
 rm(dados)
@@ -97,7 +99,9 @@ df_inten <- now_uf$intensidade_srag %>%
   mutate(fx_etaria=case_when(
     fx_etaria.num==1~"0-12",
     fx_etaria.num==2~ "> 12"
-  ))
+  ))%>%
+  arrange(fx_etaria) %>%
+  select(-fx_etaria.num, -regiao)
 
 df_tend <- now_uf$tendencia_srag %>%
   bind_rows(tendencia_br)%>%
@@ -113,11 +117,13 @@ df_tend <- now_uf$tendencia_srag %>%
 df_now<-now_uf$for_srag %>%
   bind_rows(dados_f_br)%>%
           bind_rows(tendencia_br)%>%
-        left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria")) 
+        left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria")) %>%
+  select(-fx_etaria.num, -tendencia, -window, -dt_event) %>%
+  arrange(fx_etaria)
 
 
-write.csv2(df_now, "output/estados_e_pais_serie_estimativas_tendencia_sem_filtro_febre")
-wirte.csv2(df_tend, "output/estados_intensidade_sem_filtro_febre")
+write.csv2(df_now, "output/estados_e_pais_serie_estimativas_tendencia_sem_filtro_febre.csv", row.names = FALSE)
+write.csv2(df_inten, "output/estados_intensidade_sem_filtro_febre.csv", row.names = FALSE)
 
 #########################################################################################
 ######################## CAPITAIS #######################################################
@@ -156,7 +162,9 @@ dfc_inten <- now_cap$intensidade_srag %>%
   mutate(fx_etaria=case_when(
     fx_etaria.num==1~"0-12",
     fx_etaria.num==2~ "> 12"
-  ))
+  ))%>%
+  arrange(fx_etaria) %>%
+  select(-fx_etaria.num, -regiao)
 
 dfc_tend <- now_cap$tendencia_srag %>%
   mutate(fx_etaria=case_when(
@@ -166,12 +174,14 @@ dfc_tend <- now_cap$tendencia_srag %>%
   pivot_wider(names_from = window, values_from = tendencia,  
               names_glue = "{.value}_{window}_semanas") %>%
   select(-fx_etaria.num) %>%
-  left_join(uf_auxi, by="DS_UF_SIGLA")
+  left_join(uf_auxi, by="DS_UF_SIGLA") 
 
 dfc_now<-now_cap$for_srag %>%
   left_join(df_tend, by=c("DS_UF_SIGLA", "fx_etaria")) %>%
-  left_join(uf_auxi, by=c("DS_UF_SIGLA", "SG_UF_NOT"))
+  left_join(uf_auxi, by=c("DS_UF_SIGLA", "SG_UF_NOT")) %>%
+  select(-dt_event)%>%
+  arrange(fx_etaria)
 
-write.csv2(dfc_now, "output/capitais_serie_estimativas_tendencia_sem_filtro_febre")
-wirte.csv2(dfc_tend, "output/capitais_intensidade_sem_filtro_febre")
+write.csv2(dfc_now, "output/capitais_serie_estimativas_tendencia_sem_filtro_febre.csv", row.names = FALSE)
+write.csv2(dfc_inten, "output/capitais_intensidade_sem_filtro_febre.csv", row.names=FALSE)
 

@@ -26,6 +26,7 @@ now_br <- nowcasting_inla(
   dataset=df,
   bins_age = c(0,13,160),
   age_col = idade_em_anos,
+  use.epiweek = TRUE,
   date_onset = DT_SIN_PRI,
   date_report = DT_DIGITA,
   Dmax = ddmax,
