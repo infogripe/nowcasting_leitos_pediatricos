@@ -1,4 +1,4 @@
-# SRAG Nowcasting Estimates for Bed Occupancy Assessment  
+# SARI Nowcasting Estimates for Bed Occupancy Assessment  
 # Estimativas de Nowcasting de SRAG para Avaliação de Ocupação de Leitos
 
 ---
@@ -75,7 +75,7 @@ Essas estimativas de nowcasting têm como objetivo apoiar o monitoramento em tem
 
 ## Overview
 
-This repository contains nowcasting estimates of Severe Acute Respiratory Syndrome (SRAG) cases to support the assessment of pediatric and adult hospital bed occupancy.
+This repository contains nowcasting estimates of Severe Acute Respiratory Infections (SARI) cases to support the assessment of pediatric and adult hospital bed occupancy.
 
 Estimates are produced for two age groups:
 - 0–12 years
