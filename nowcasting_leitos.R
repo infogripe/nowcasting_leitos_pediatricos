@@ -43,7 +43,8 @@ today.week.ori<-epiweek(Sys.Date())
 lyear<-epiyear(Sys.Date())
 def_dmax<-15
 window<-2.25*def_dmax
-data_corte<-Sys.Date()-2 ##rever 
+data_corte <- Sys.Date() - lubridate::wday(Sys.Date(), week_start = 7) %% 7
+#data_corte<-Sys.Date()-2 ##rever 
 ###Dados UF
 
 uf_auxi2<- uf_auxi %>%
