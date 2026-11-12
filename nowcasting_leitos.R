@@ -1,19 +1,29 @@
 rm(list = ls())
 gc()
 
-library(tidyverse)
-library(data.table)
-library(scales)
-library(purrr)
-library(readr)
-library(vroom)
-library(INLA)
-library(doParallel)
-library(sp)
-library(sn)
-library(snow)
-library(lme4)
-library(nowcaster)
+pacotes <- c( "tidyverse", "data.table", "scales", "purrr", 
+              "readr", "vroom", "doParallel", "sp", "sn", "snow", "lme4", "INLA", "nowcaster")
+
+pacotes_instalados <- rownames(installed.packages())
+
+pacotes_faltantes <- setdiff( pacotes, pacotes_instalados )
+
+if (length(pacotes_faltantes) > 0) { message("Instalando pacotes faltantes: ", paste(pacotes_faltantes, collapse = ", "))
+  install.packages(pacotes_faltantes) } else { message("Todos os pacotes já estão instalados!") }
+
+invisible( lapply(pacotes, library, character.only = TRUE))
+
+if (!requireNamespace("INLA", quietly = TRUE)) {
+  install.packages(
+    "INLA",
+    repos = c(
+      getOption("repos"),
+      INLA = "https://inla.r-inla-download.org/R/stable"
+    ),
+    dep = TRUE
+  )
+}
+
 
 n_cores <- detectCores()
 cl <- makeCluster(n_cores)
